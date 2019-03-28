@@ -48,22 +48,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TEMP_RANGE 50.0
 
 #define MAX_NUM_SENSORS             10
+
 #define PROC_THERMAL_DIRECTORY      "/proc/acpi/thermal_zone/"
 #define PROC_THERMAL_TEMPF          "temperature"
 #define PROC_THERMAL_TRIP           "trip_points"
-#define PROC_TRIP_CRITICAL          "critical (S5):"
 
 #define SYSFS_THERMAL_DIRECTORY     "/sys/class/thermal/"
 #define SYSFS_THERMAL_SUBDIR_PREFIX "thermal_zone"
 #define SYSFS_THERMAL_TEMPF         "temp"
-#define SYSFS_THERMAL_TRIP          "trip_point_0_temp"
 
 
 typedef gint (*GetTempFunc) (char const *);
 
 /* Private context for plugin */
 
-typedef struct {
+typedef struct
+{
     GdkColor foreground_color;			    /* Foreground color for drawing area */
     GdkColor background_color;			    /* Background color for drawing area */
     GtkWidget *da;				            /* Drawing area */
@@ -75,11 +75,8 @@ typedef struct {
     guint pixmap_height;			        /* Height of drawing area pixmap; does not include border size */
     int numsensors;
     char *sensor_array[MAX_NUM_SENSORS];
-    char *sensor_name[MAX_NUM_SENSORS];
     GetTempFunc get_temperature[MAX_NUM_SENSORS];
-    GetTempFunc get_critical[MAX_NUM_SENSORS];
     gint temperature[MAX_NUM_SENSORS];
-    gint critical[MAX_NUM_SENSORS];
     config_setting_t *settings;
 } CPUTempPlugin;
 
@@ -93,37 +90,6 @@ static gboolean draw (GtkWidget * widget, cairo_t * cr, CPUTempPlugin * c);
 #endif
 
 static void cpu_destructor (gpointer user_data);
-
-static gint proc_get_critical (char const *sensor_path)
-{
-    FILE *state;
-    char buf[256], sstmp [100];
-    char *pstr;
-
-    if (sensor_path == NULL) return -1;
-
-    snprintf (sstmp, sizeof(sstmp), "%s%s", sensor_path, PROC_THERMAL_TRIP);
-
-    if (!(state = fopen (sstmp, "r"))) 
-    {
-        g_warning ("cputemp: cannot open %s", sstmp);
-        return -1;
-    }
-
-    while (fgets (buf, 256, state) && !(pstr = strstr (buf, PROC_TRIP_CRITICAL)));
-    if (pstr)
-    {
-        pstr += strlen (PROC_TRIP_CRITICAL);
-        while (*pstr && *pstr == ' ') ++pstr;
-
-        pstr[strlen (pstr) - 3] = '\0';
-        fclose (state);
-        return atoi (pstr);
-    }
-
-    fclose (state);
-    return -1;
-}
 
 static gint proc_get_temperature (char const *sensor_path)
 {
@@ -156,7 +122,7 @@ static gint proc_get_temperature (char const *sensor_path)
     return -1;
 }
 
-static gint _get_reading (const char *path, gboolean quiet)
+static gint _get_reading (const char *path)
 {
     FILE *state;
     char buf[256];
@@ -164,7 +130,7 @@ static gint _get_reading (const char *path, gboolean quiet)
 
     if (!(state = fopen (path, "r")))
     {
-        if (!quiet) g_warning ("cputemp: cannot open %s", path);
+        g_warning ("cputemp: cannot open %s", path);
         return -1;
     }
 
@@ -179,52 +145,25 @@ static gint _get_reading (const char *path, gboolean quiet)
     return -1;
 }
 
-static gint sysfs_get_critical (char const *sensor_path)
-{
-    char sstmp [100];
-
-    if (sensor_path == NULL) return -1;
-
-    snprintf (sstmp, sizeof(sstmp), "%s%s", sensor_path, SYSFS_THERMAL_TRIP);
-
-    return _get_reading (sstmp, TRUE);
-}
-
 static gint sysfs_get_temperature (char const *sensor_path)
 {
     char sstmp [100];
 
     if (sensor_path == NULL) return -1;
 
-    snprintf (sstmp, sizeof(sstmp), "%s%s", sensor_path, SYSFS_THERMAL_TEMPF);
+    snprintf (sstmp, sizeof (sstmp), "%s%s", sensor_path, SYSFS_THERMAL_TEMPF);
 
-    return _get_reading (sstmp, FALSE);
-}
-
-static gint hwmon_get_critical (char const *sensor_path)
-{
-    char sstmp[100];
-    int spl;
-
-    if (sensor_path == NULL) return -1;
-
-    spl = strlen (sensor_path) - 6;
-    if (spl < 17 || spl > 94) return -1;
-
-    snprintf (sstmp, sizeof (sstmp), "%.*s_crit", spl, sensor_path);
-
-    return _get_reading (sstmp, TRUE);
+    return _get_reading (sstmp);
 }
 
 static gint hwmon_get_temperature(char const *sensor_path)
 {
     if (sensor_path == NULL) return -1;
-    return _get_reading (sensor_path, FALSE);
+    return _get_reading (sensor_path);
 }
 
 
-static int add_sensor (CPUTempPlugin* th, char const* sensor_path, const char *sensor_name,
-    GetTempFunc get_temp, GetTempFunc get_crit)
+static int add_sensor (CPUTempPlugin* th, char const* sensor_path, GetTempFunc get_temp)
 {
     if (th->numsensors + 1 > MAX_NUM_SENSORS)
     {
@@ -234,8 +173,6 @@ static int add_sensor (CPUTempPlugin* th, char const* sensor_path, const char *s
     }
 
     th->sensor_array[th->numsensors] = g_strdup (sensor_path);
-    th->sensor_name[th->numsensors] = g_strdup (sensor_name);
-    th->get_critical[th->numsensors] = get_crit;
     th->get_temperature[th->numsensors] = get_temp;
     th->numsensors++;
 
@@ -253,30 +190,27 @@ static gboolean try_hwmon_sensors (CPUTempPlugin* th, const char *path)
     FILE *fp;
     gboolean found = FALSE;
 
-    if (!(sensorsDirectory = g_dir_open (path, 0, NULL)))
-        return found;
+    if (!(sensorsDirectory = g_dir_open (path, 0, NULL))) return found;
 
     while ((sensor_name = g_dir_read_name (sensorsDirectory)))
     {
         if (strncmp (sensor_name, "temp", 4) == 0 &&
             strcmp (&sensor_name[5], "_input") == 0)
         {
-            snprintf (sensor_path, sizeof (sensor_path), "%s/temp%c_label", path,
-                     sensor_name[4]);
+            snprintf (sensor_path, sizeof (sensor_path), "%s/temp%c_label", path, sensor_name[4]);
             fp = fopen (sensor_path, "r");
             buf[0] = '\0';
             if (fp)
             {
-                if (fgets(buf, 256, fp))
+                if (fgets (buf, 256, fp))
                 {
-                    char *pp = strchr(buf, '\n');
+                    char *pp = strchr (buf, '\n');
                     if (pp) *pp = '\0';
                 }
                 fclose (fp);
             }
             snprintf (sensor_path, sizeof (sensor_path), "%s/%s", path, sensor_name);
-            add_sensor (th, sensor_path, buf[0] ? buf : sensor_name,
-                hwmon_get_temperature, hwmon_get_critical);
+            add_sensor (th, sensor_path, hwmon_get_temperature);
             found = TRUE;
         }
     }
@@ -301,13 +235,7 @@ static void find_hwmon_sensors (CPUTempPlugin* th)
     }
 }
 
-/* find_sensors():
- *      - Get the sensor directory, and store it in '*sensor'.
- *      - It is searched for in 'directory'.
- *      - Only the subdirectories starting with 'subdir_prefix' are accepted as sensors.
- *      - 'subdir_prefix' may be NULL, in which case any subdir is considered a sensor. */
-static void find_sensors (CPUTempPlugin* th, char const* directory, char const* subdir_prefix,
-    GetTempFunc get_temp, GetTempFunc get_crit)
+static void find_sensors (CPUTempPlugin* th, char const* directory, char const* subdir_prefix, GetTempFunc get_temp)
 {
     GDir *sensorsDirectory;
     const char *sensor_name;
@@ -316,7 +244,7 @@ static void find_sensors (CPUTempPlugin* th, char const* directory, char const* 
     if (!(sensorsDirectory = g_dir_open (directory, 0, NULL))) return;
 
     /* Scan the thermal_zone directory for available sensors */
-    while ((sensor_name = g_dir_read_name(sensorsDirectory)))
+    while ((sensor_name = g_dir_read_name (sensorsDirectory)))
     {
         if (sensor_name[0] == '.') continue;
         if (subdir_prefix)
@@ -324,7 +252,7 @@ static void find_sensors (CPUTempPlugin* th, char const* directory, char const* 
             if (strncmp (sensor_name, subdir_prefix, strlen (subdir_prefix)) != 0)  continue;
         }
         snprintf (sensor_path, sizeof (sensor_path), "%s%s/", directory, sensor_name);
-        add_sensor (th, sensor_path, sensor_name, get_temp, get_crit);
+        add_sensor (th, sensor_path, get_temp);
     }
     g_dir_close (sensorsDirectory);
 }
@@ -333,21 +261,15 @@ static void check_sensors (CPUTempPlugin *th)
 {
     int i;
 
-    for (i = 0; i < th->numsensors; i++)
-    {
-        g_free (th->sensor_array[i]);
-        g_free (th->sensor_name[i]);
-    }
-
+    for (i = 0; i < th->numsensors; i++) g_free (th->sensor_array[i]);
     th->numsensors = 0;
-    find_sensors (th, PROC_THERMAL_DIRECTORY, NULL, proc_get_temperature, proc_get_critical);
-    find_sensors (th, SYSFS_THERMAL_DIRECTORY, SYSFS_THERMAL_SUBDIR_PREFIX, sysfs_get_temperature, sysfs_get_critical);
+
+    find_sensors (th, PROC_THERMAL_DIRECTORY, NULL, proc_get_temperature);
+    find_sensors (th, SYSFS_THERMAL_DIRECTORY, SYSFS_THERMAL_SUBDIR_PREFIX, sysfs_get_temperature);
     if (th->numsensors == 0) find_hwmon_sensors (th);
     
     g_message ("cputemp: Found %d sensors", th->numsensors);
 }
-
-
 
 /* Redraw after timer callback or resize. */
 static void redraw_pixmap(CPUTempPlugin * c)
@@ -370,7 +292,7 @@ static void redraw_pixmap(CPUTempPlugin * c)
     col.red = c->foreground_color.blue;
     col.green = c->foreground_color.green;
     col.blue = c->foreground_color.red;
-    gdk_cairo_set_source_color(cr, &col);
+    gdk_cairo_set_source_color (cr, &col);
     for (i = 0; i < c->pixmap_width; i++)
     {
         /* Draw one bar of the CPU usage graph. */
@@ -379,26 +301,25 @@ static void redraw_pixmap(CPUTempPlugin * c)
             float val = c->stats_cpu[drawing_cursor] * 100.0;
             val -= TEMP_LOW;
             val /= TEMP_RANGE;
-            cairo_move_to(cr, i + 0.5, c->pixmap_height);
-            cairo_line_to(cr, i + 0.5, c->pixmap_height - val * c->pixmap_height);
-            cairo_stroke(cr);
+            cairo_move_to (cr, i + 0.5, c->pixmap_height);
+            cairo_line_to (cr, i + 0.5, c->pixmap_height - val * c->pixmap_height);
+            cairo_stroke (cr);
         }
 
         /* Increment and wrap drawing cursor. */
         drawing_cursor += 1;
-        if (drawing_cursor >= c->pixmap_width)
-            drawing_cursor = 0;
+        if (drawing_cursor >= c->pixmap_width) drawing_cursor = 0;
     }
 
     /* draw a border in black */
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_set_line_width(cr, 1);
-    cairo_move_to(cr, 0, 0);
-    cairo_line_to(cr, 0, c->pixmap_height);
-    cairo_line_to(cr, c->pixmap_width, c->pixmap_height);
-    cairo_line_to(cr, c->pixmap_width, 0);
-    cairo_line_to(cr, 0, 0);
-    cairo_stroke(cr);
+    cairo_set_source_rgb (cr, 0, 0, 0);
+    cairo_set_line_width (cr, 1);
+    cairo_move_to (cr, 0, 0);
+    cairo_line_to (cr, 0, c->pixmap_height);
+    cairo_line_to (cr, c->pixmap_width, c->pixmap_height);
+    cairo_line_to (cr, c->pixmap_width, 0);
+    cairo_line_to (cr, 0, 0);
+    cairo_stroke (cr);
 
     int fontsize = 12;
     if (c->pixmap_width > 50) fontsize = c->pixmap_height / 3;
