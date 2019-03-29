@@ -1,0 +1,5 @@
+lxplug-cputemp (0.1) stretch; urgency=medium
+
+  * Initial release.
+
+ -- Simon Long <simon@raspberrypi.org>  Fri, 29 Mar 2019 08:30:14 +0000

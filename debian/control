@@ -1,0 +1,16 @@
+Source: lxplug-cputemp
+Section: x11
+Priority: optional
+Maintainer: Simon Long <simon@raspberrypi.org>
+Build-Depends:
+ debhelper (>= 9), dh-autoreconf, intltool, libgtk2.0-dev (>= 2.18), 
+ libiw-dev [linux-any], libmenu-cache-dev | libmenu-cache1-dev,
+ libwnck-dev, lxpanel-dev 
+Homepage: http://raspberrypi.org/
+
+Package: lxplug-cputemp
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, lxmenu-data,
+ lxpanel, lxpanel-data
+Description: CPU temperature plugin for lxpanel
+ Plugin for lxpanel to show graph of CPU temperature.
