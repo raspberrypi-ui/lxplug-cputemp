@@ -525,7 +525,7 @@ static gboolean draw (GtkWidget * widget, cairo_t * cr, CPUTempPlugin * c)
 }
 
 /* Plugin constructor. */
-static GtkWidget *cpu_constructor(LXPanel *panel, config_setting_t *settings)
+static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
 {
     /* Allocate plugin context and set into Plugin private data pointer. */
     CPUTempPlugin *c = g_new0(CPUTempPlugin, 1);
@@ -596,6 +596,7 @@ static GtkWidget *cpu_constructor(LXPanel *panel, config_setting_t *settings)
 
     /* Show the widget.  Connect a timer to refresh the statistics. */
     gtk_widget_show (c->da);
+    cpu_configuration_changed (panel, p);
     c->timer = g_timeout_add (1500, (GSourceFunc) cpu_update, (gpointer) c);
     return p;
 }
@@ -632,7 +633,7 @@ static gboolean cpu_apply_configuration (gpointer user_data)
 }
 
 /* Callback when the configuration dialog is to be shown. */
-static GtkWidget *cpu_configure(LXPanel *panel, GtkWidget *p)
+static GtkWidget *cpu_configure (LXPanel *panel, GtkWidget *p)
 {
     CPUTempPlugin * dc = lxpanel_plugin_get_data(p);
     return lxpanel_generic_config_dlg(_("CPU Temperature"), panel,
