@@ -44,9 +44,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define BORDER_SIZE 2
 
-#define TEMP_LOW   40.0
-#define TEMP_RANGE 50.0
-
 #define MAX_NUM_SENSORS             10
 
 #define PROC_THERMAL_DIRECTORY      "/proc/acpi/thermal_zone/"
@@ -76,6 +73,8 @@ typedef struct
     unsigned int ring_cursor;			    /* Cursor for ring buffer */
     guint pixmap_width;				        /* Width of drawing area pixmap; also size of ring buffer; does not include border size */
     guint pixmap_height;			        /* Height of drawing area pixmap; does not include border size */
+    int lower_temp;                         /* Temperature of bottom of graph */
+    int upper_temp;                         /* Temperature of top of graph */
     int numsensors;
     char *sensor_array[MAX_NUM_SENSORS];
     GetTempFunc get_temperature[MAX_NUM_SENSORS];
@@ -314,8 +313,8 @@ static void redraw_pixmap (CPUTempPlugin * c)
                 gdk_cairo_set_source_color (cr, &col);
 
             float val = c->stats_cpu[drawing_cursor] * 100.0;
-            val -= TEMP_LOW;
-            val /= TEMP_RANGE;
+            val -= c->lower_temp;
+            val /= (c->upper_temp - c->lower_temp);
             cairo_move_to (cr, i + 0.5, c->pixmap_height);
             cairo_line_to (cr, i + 0.5, c->pixmap_height - val * c->pixmap_height);
             cairo_stroke (cr);
@@ -532,6 +531,7 @@ static GtkWidget *cpu_constructor(LXPanel *panel, config_setting_t *settings)
     CPUTempPlugin *c = g_new0(CPUTempPlugin, 1);
     GtkWidget *p;
     const char *str;
+    int val;
 
 	c->settings = settings;
 
@@ -558,6 +558,20 @@ static GtkWidget *cpu_constructor(LXPanel *panel, config_setting_t *settings)
         if (!gdk_color_parse (str, &c->high_throttle_color))
             gdk_color_parse ("red", &c->high_throttle_color);
     } else gdk_color_parse ("red", &c->high_throttle_color);
+
+    if (config_setting_lookup_int (settings, "LowTemp", &val))
+    {
+        if (val >= 0 && val <= 100) c->lower_temp = val;
+        else c->lower_temp = 40;
+    }
+    else c->lower_temp = 40;
+
+    if (config_setting_lookup_int (settings, "HighTemp", &val))
+    {
+        if (val >= 0 && val <= 150 && val > c->lower_temp) c->upper_temp = val;
+        else c->upper_temp = 90;
+    }
+    else c->upper_temp = 90;
 
     /* Find the system thermal sensors */
     check_sensors (c);
@@ -613,6 +627,8 @@ static gboolean cpu_apply_configuration (gpointer user_data)
     config_group_set_string (c->settings, "Throttle1", colbuf);
     sprintf (colbuf, "%s", gdk_color_to_string (&c->high_throttle_color));
     config_group_set_string (c->settings, "Throttle2", colbuf);
+    config_group_set_int (c->settings, "HighTemp", c->upper_temp);
+    config_group_set_int (c->settings, "LowTemp", c->lower_temp);
 }
 
 /* Callback when the configuration dialog is to be shown. */
@@ -625,6 +641,8 @@ static GtkWidget *cpu_configure(LXPanel *panel, GtkWidget *p)
         _("Background colour"), &dc->background_color, CONF_TYPE_COLOR,
         _("Colour when ARM frequency capped"), &dc->low_throttle_color, CONF_TYPE_COLOR,
         _("Colour when throttled"), &dc->high_throttle_color, CONF_TYPE_COLOR,
+        _("Lower temperature bound"), &dc->lower_temp, CONF_TYPE_INT,
+        _("Upper temperature bound"), &dc->upper_temp, CONF_TYPE_INT,
         NULL);
 }
 
