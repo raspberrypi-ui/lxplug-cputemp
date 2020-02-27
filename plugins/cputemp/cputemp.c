@@ -5,7 +5,7 @@
  * Copyright for relevant code as for LXPanel
  *
  */
- 
+
 /*
 Copyright (c) 2018 Raspberry Pi (Trading) Ltd.
 All rights reserved.
@@ -80,6 +80,7 @@ typedef struct
     GetTempFunc get_temperature[MAX_NUM_SENSORS];
     gint temperature[MAX_NUM_SENSORS];
     config_setting_t *settings;
+    gboolean ispi;
 } CPUTempPlugin;
 
 static void redraw_pixmap (CPUTempPlugin * c);
@@ -92,6 +93,14 @@ static gboolean draw (GtkWidget * widget, cairo_t * cr, CPUTempPlugin * c);
 #endif
 
 static void cpu_destructor (gpointer user_data);
+
+static gboolean is_pi (void)
+{
+    if (system ("raspi-config nonint is_pi") == 0)
+        return TRUE;
+    else
+        return FALSE;
+}
 
 static gint proc_get_temperature (char const *sensor_path)
 {
@@ -368,7 +377,6 @@ static gint get_temperature (CPUTempPlugin *c)
     return max;
 }
 
-#if __arm__
 static char *get_string (char *cmd)
 {
     char *line = NULL, *res = NULL;
@@ -401,7 +409,6 @@ static int get_throttle (CPUTempPlugin *c)
     g_free (buf);
     return val;
 }
-#endif
 
 /* Periodic timer callback. */
 static gboolean cpu_update (CPUTempPlugin *c)
@@ -411,11 +418,7 @@ static gboolean cpu_update (CPUTempPlugin *c)
 
     int t = get_temperature (c);
     c->stats_cpu[c->ring_cursor] = t / 100.0;
-#if __arm__    
-    c->stats_throttle[c->ring_cursor] = get_throttle (c);
-#else
-    c->stats_throttle[c->ring_cursor] = 0;
-#endif
+    c->stats_throttle[c->ring_cursor] = c->ispi ? get_throttle (c) : 0;
     c->ring_cursor += 1;
     if (c->ring_cursor >= c->pixmap_width) c->ring_cursor = 0;
 
@@ -533,7 +536,8 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
     const char *str;
     int val;
 
-	c->settings = settings;
+    c->settings = settings;
+    c->ispi = is_pi ();
 
     if (config_setting_lookup_string (settings, "Foreground", &str))
     {

@@ -1,3 +1,9 @@
+lxplug-cputemp (0.2) buster; urgency=medium
+
+  * Check for Pi or x86 at runtime
+
+ -- Simon Long <simon@raspberrypi.org>  Thu, 27 Feb 2020 10:21:11 +0000
+
 lxplug-cputemp (0.1) stretch; urgency=medium
 
   * Initial release.
