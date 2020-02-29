@@ -11,6 +11,6 @@ Homepage: http://raspberrypi.org/
 Package: lxplug-cputemp
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}, lxmenu-data,
- lxpanel, lxpanel-data
+ lxpanel, lxpanel-data, raspi-config
 Description: CPU temperature plugin for lxpanel
  Plugin for lxpanel to show graph of CPU temperature.
