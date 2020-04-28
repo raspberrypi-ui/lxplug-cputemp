@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: Italian\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ASCII\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
@@ -31,11 +31,11 @@ msgstr "Colore di sfondo"
 
 #: ../plugins/cputemp/cputemp.c:642
 msgid "Colour when ARM frequency capped"
-msgstr "Colore quando la frequenza ARM è limitata"
+msgstr "Colore quando la frequenza ARM Ã¨ limitata"
 
 #: ../plugins/cputemp/cputemp.c:643
 msgid "Colour when throttled"
-msgstr "Colore quando la CPU è rallentata"
+msgstr "Colore quando la CPU Ã¨ rallentata"
 
 #: ../plugins/cputemp/cputemp.c:644
 msgid "Lower temperature bound"
