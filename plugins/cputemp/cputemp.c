@@ -33,6 +33,9 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
@@ -536,6 +539,13 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
     const char *str;
     int val;
 
+#ifdef ENABLE_NLS
+    setlocale (LC_ALL, "");
+    bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
+    bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+    textdomain (GETTEXT_PACKAGE);
+#endif
+
     c->settings = settings;
     c->ispi = is_pi ();
 
@@ -640,6 +650,9 @@ static gboolean cpu_apply_configuration (gpointer user_data)
 static GtkWidget *cpu_configure (LXPanel *panel, GtkWidget *p)
 {
     CPUTempPlugin * dc = lxpanel_plugin_get_data(p);
+#ifdef ENABLE_NLS
+    textdomain (GETTEXT_PACKAGE);
+#endif
     return lxpanel_generic_config_dlg(_("CPU Temperature"), panel,
         cpu_apply_configuration, p,
         _("Foreground colour"), &dc->foreground_color, CONF_TYPE_COLOR,
@@ -660,4 +673,5 @@ LXPanelPluginInit fm_module_init_lxpanel_gtk = {
     .description = N_("Display CPU temperature"),
     .new_instance = cpu_constructor,
     .reconfigure = cpu_configuration_changed,
+    .gettext_package = GETTEXT_PACKAGE
 };
