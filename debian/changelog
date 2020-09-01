@@ -1,3 +1,9 @@
+lxplug-cputemp (0.5) buster; urgency=medium
+
+  * Fix crash when throttling detection fails
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 01 Sep 2020 11:50:22 +0100
+
 lxplug-cputemp (0.4) buster; urgency=medium
 
   * Italian translation added
