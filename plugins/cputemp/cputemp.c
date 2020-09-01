@@ -408,6 +408,7 @@ static int get_throttle (CPUTempPlugin *c)
     unsigned int val;
 
     buf = get_string ("vcgencmd get_throttled");
+    if (!buf) return 0;
     if (sscanf (buf, "throttled=0x%x", &val) != 1) val = 0;
     g_free (buf);
     return val;
