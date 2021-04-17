@@ -1,0 +1,54 @@
+# Armenian translations for lxplug_cputemp package.
+# Copyright (C) 2019 Raspberry Pi Ltd
+# This file is distributed under the same license as the lxplug_cputemp package.
+# Simon Long <simon@raspberrypi.org>, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: lxplug_cputemp 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-29 08:23+0000\n"
+"PO-Revision-Date: 2019-03-29 08:24+0000\n"
+"Last-Translator: Avag Sayan <info@armath.am>\n"
+"Language-Team: Armenian\n"
+"Language: hy\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../plugins/cputemp/cputemp.c:638
+msgid "CPU Temperature"
+msgstr "Պրոցեսորի ջերմաստիճանը"
+
+#: ../plugins/cputemp/cputemp.c:640
+msgid "Foreground colour"
+msgstr "Դիմային ֆոնի գույնը"
+
+#: ../plugins/cputemp/cputemp.c:641
+msgid "Background colour"
+msgstr "Հետևի ֆոնի գույնը"
+
+#: ../plugins/cputemp/cputemp.c:642
+msgid "Colour when ARM frequency capped"
+msgstr "Գունավորել, երբ ARM հաճախականությունը սահմանային է"
+
+#: ../plugins/cputemp/cputemp.c:643
+msgid "Colour when throttled"
+msgstr "Գունավորել, երբ ծանրաբեռնված է"
+
+#: ../plugins/cputemp/cputemp.c:644
+msgid "Lower temperature bound"
+msgstr "Նվազագույն ջերմաստիճանի շեմ"
+
+#: ../plugins/cputemp/cputemp.c:645
+msgid "Upper temperature bound"
+msgstr "Առավելագույն ջերմաստիճանի շեմ"
+
+#: ../plugins/cputemp/cputemp.c:653
+msgid "CPU Temperature Monitor"
+msgstr "Պրոցեսորի ջերմաստիճանի վերահսկում"
+
+#: ../plugins/cputemp/cputemp.c:655
+msgid "Display CPU temperature"
+msgstr "Ցույց տալ պրոցեսորի ջերմաստիճանը"
