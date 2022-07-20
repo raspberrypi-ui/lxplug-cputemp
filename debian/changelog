@@ -1,3 +1,9 @@
+lxplug-cputemp (0.9) bullseye; urgency=medium
+
+  * Tidy constructor; fix translations
+
+ -- Simon Long <simon@raspberrypi.com>  Wed, 20 Jul 2022 14:28:28 +0100
+
 lxplug-cputemp (0.8) bullseye; urgency=medium
 
   * Added Armenian translation

@@ -75,6 +75,8 @@ typedef struct
     GdkColor low_throttle_color;			/* Colour for bars with ARM freq cap */
     GdkColor high_throttle_color;			/* Colour for bars with throttling */
 #endif
+    GtkWidget *plugin;                      /* Back pointer to the widget */
+    LXPanel *panel;                         /* Back pointer to panel */
     GtkWidget *da;				            /* Drawing area */
     cairo_surface_t *pixmap;				/* Pixmap to be drawn on drawing area */
     guint timer;				            /* Timer for periodic update */
@@ -563,8 +565,8 @@ static gboolean draw (GtkWidget * widget, cairo_t * cr, CPUTempPlugin * c)
 /* Plugin constructor. */
 static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
 {
-    /* Allocate plugin context and set into Plugin private data pointer. */
-    CPUTempPlugin *c = g_new0(CPUTempPlugin, 1);
+    /* Allocate and initialize plugin context */
+    CPUTempPlugin *c = g_new0 (CPUTempPlugin, 1);
     GtkWidget *p;
     const char *str;
     int val;
@@ -573,10 +575,19 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
     setlocale (LC_ALL, "");
     bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
     bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
-    textdomain (GETTEXT_PACKAGE);
 #endif
 
+    /* Allocate top level widget and set into plugin widget pointer. */
+    c->panel = panel;
     c->settings = settings;
+    c->plugin = gtk_event_box_new ();
+    lxpanel_plugin_set_data (c->plugin, c, cpu_destructor);
+
+    /* Allocate icon as a child of top level */
+    c->da = gtk_image_new ();
+    gtk_container_add (GTK_CONTAINER (c->plugin), c->da);
+
+    /* Set up variables */
     c->ispi = is_pi ();
 
     if (config_setting_lookup_string (settings, "Foreground", &str))
@@ -644,17 +655,6 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
     /* Find the system thermal sensors */
     check_sensors (c);
 
-    /* Allocate top level widget and set into Plugin widget pointer. */
-    p = gtk_event_box_new ();
-    gtk_widget_set_has_window (p, FALSE);
-    lxpanel_plugin_set_data (p, c, cpu_destructor);
-
-    /* Allocate drawing area as a child of top level widget. */
-    c->da = gtk_image_new ();
-    gtk_widget_add_events (c->da, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK |
-        GDK_BUTTON_MOTION_MASK);
-    gtk_container_add (GTK_CONTAINER (p), c->da);
-
     /* Connect signals. */
 #if !GTK_CHECK_VERSION(3, 0, 0)
     g_signal_connect(G_OBJECT (c->da), "expose-event", G_CALLBACK (expose_event), (gpointer) c);
@@ -662,20 +662,21 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
     g_signal_connect(G_OBJECT (c->da), "draw", G_CALLBACK (draw), (gpointer) c);
 #endif
 
-    /* Show the widget.  Connect a timer to refresh the statistics. */
-    gtk_widget_show (c->da);
-    cpu_configuration_changed (panel, p);
+    /* Connect a timer to refresh the statistics. */
     c->timer = g_timeout_add (1500, (GSourceFunc) cpu_update, (gpointer) c);
-    return p;
+
+    /* Show the widget and return. */
+    gtk_widget_show_all (c->plugin);
+    return c->plugin;
 }
 
 /* Plugin destructor. */
-static void cpu_destructor(gpointer user_data)
+static void cpu_destructor (gpointer user_data)
 {
     CPUTempPlugin *c = (CPUTempPlugin *) user_data;
 
     /* Disconnect the timer. */
-    g_source_remove(c->timer);
+    g_source_remove (c->timer);
 
     /* Deallocate memory. */
     cairo_surface_destroy (c->pixmap);
@@ -720,9 +721,7 @@ static gboolean cpu_apply_configuration (gpointer user_data)
 static GtkWidget *cpu_configure (LXPanel *panel, GtkWidget *p)
 {
     CPUTempPlugin * dc = lxpanel_plugin_get_data(p);
-#ifdef ENABLE_NLS
-    textdomain (GETTEXT_PACKAGE);
-#endif
+
     return lxpanel_generic_config_dlg(_("CPU Temperature"), panel,
         cpu_apply_configuration, p,
         _("Foreground colour"), &dc->foreground_color, CONF_TYPE_COLOR,
@@ -734,7 +733,7 @@ static GtkWidget *cpu_configure (LXPanel *panel, GtkWidget *p)
         NULL);
 }
 
-FM_DEFINE_MODULE(lxpanel_gtk, cputemp)
+FM_DEFINE_MODULE (lxpanel_gtk, cputemp)
 
 /* Plugin descriptor. */
 LXPanelPluginInit fm_module_init_lxpanel_gtk = {
