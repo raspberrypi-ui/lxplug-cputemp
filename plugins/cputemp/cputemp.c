@@ -97,7 +97,6 @@ typedef struct
 
 static void redraw_pixmap (CPUTempPlugin * c);
 static gboolean cpu_update (CPUTempPlugin * c);
-static gboolean configure_event (GtkWidget * widget, GdkEventConfigure * event, CPUTempPlugin * c);
 #if !GTK_CHECK_VERSION(3, 0, 0)
 static gboolean expose_event (GtkWidget * widget, GdkEventExpose * event, CPUTempPlugin * c);
 #else
@@ -567,7 +566,6 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
 {
     /* Allocate and initialize plugin context */
     CPUTempPlugin *c = g_new0 (CPUTempPlugin, 1);
-    GtkWidget *p;
     const char *str;
     int val;
 
@@ -715,6 +713,7 @@ static gboolean cpu_apply_configuration (gpointer user_data)
     config_group_set_string (c->settings, "Throttle2", colbuf);
     config_group_set_int (c->settings, "HighTemp", c->upper_temp);
     config_group_set_int (c->settings, "LowTemp", c->lower_temp);
+    return FALSE;
 }
 
 /* Callback when the configuration dialog is to be shown. */
