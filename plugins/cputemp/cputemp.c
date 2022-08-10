@@ -64,17 +64,10 @@ typedef gint (*GetTempFunc) (char const *);
 
 typedef struct
 {
-#if GTK_CHECK_VERSION(3, 0, 0)
     GdkRGBA foreground_color;			    /* Foreground colour for drawing area */
     GdkRGBA background_color;			    /* Background colour for drawing area */
     GdkRGBA low_throttle_color;			    /* Colour for bars with ARM freq cap */
     GdkRGBA high_throttle_color;			/* Colour for bars with throttling */
-#else
-    GdkColor foreground_color;			    /* Foreground colour for drawing area */
-    GdkColor background_color;			    /* Background colour for drawing area */
-    GdkColor low_throttle_color;			/* Colour for bars with ARM freq cap */
-    GdkColor high_throttle_color;			/* Colour for bars with throttling */
-#endif
     GtkWidget *plugin;                      /* Back pointer to the widget */
     LXPanel *panel;                         /* Back pointer to panel */
     GtkWidget *da;				            /* Drawing area */
@@ -97,12 +90,7 @@ typedef struct
 
 static void redraw_pixmap (CPUTempPlugin * c);
 static gboolean cpu_update (CPUTempPlugin * c);
-#if !GTK_CHECK_VERSION(3, 0, 0)
-static gboolean expose_event (GtkWidget * widget, GdkEventExpose * event, CPUTempPlugin * c);
-#else
 static gboolean draw (GtkWidget * widget, cairo_t * cr, CPUTempPlugin * c);
-#endif
-
 static void cpu_destructor (gpointer user_data);
 
 static gboolean is_pi (void)
@@ -296,63 +284,27 @@ static void check_sensors (CPUTempPlugin *c)
 /* Redraw after timer callback or resize. */
 static void redraw_pixmap (CPUTempPlugin * c)
 {
-#if !GTK_CHECK_VERSION(3, 0, 0)
-    GdkColor col, t1col, t2col;
-#endif
     cairo_t * cr = cairo_create(c->pixmap);
-#if !GTK_CHECK_VERSION(3, 0, 0)
-    GtkStyle * style = gtk_widget_get_style(c->da);
-#endif
     cairo_set_line_width (cr, 1.0);
     /* Erase pixmap. */
     cairo_rectangle(cr, 0, 0, c->pixmap_width, c->pixmap_height);
-#if GTK_CHECK_VERSION(3, 0, 0)
     cairo_set_source_rgba(cr, c->background_color.blue,  c->background_color.green, c->background_color.red, c->background_color.alpha);
-#else
-    col.red = c->background_color.blue;
-    col.green = c->background_color.green;
-    col.blue = c->background_color.red;
-    gdk_cairo_set_source_color(cr, &col);
-#endif
     cairo_fill(cr);
 
     /* Recompute pixmap. */
     unsigned int i;
     unsigned int drawing_cursor = c->ring_cursor;
-#if !GTK_CHECK_VERSION(3, 0, 0)
-    col.red = c->foreground_color.blue;
-    col.green = c->foreground_color.green;
-    col.blue = c->foreground_color.red;
-    t1col.red = c->low_throttle_color.blue;
-    t1col.green = c->low_throttle_color.green;
-    t1col.blue = c->low_throttle_color.red;
-    t2col.red = c->high_throttle_color.blue;
-    t2col.green = c->high_throttle_color.green;
-    t2col.blue = c->high_throttle_color.red;
-#endif
     for (i = 0; i < c->pixmap_width; i++)
     {
         /* Draw one bar of the CPU usage graph. */
         if (c->stats_cpu[drawing_cursor] != 0.0)
         {
             if (c->stats_throttle[drawing_cursor] & 0x4)
-#if GTK_CHECK_VERSION(3, 0, 0)
                 cairo_set_source_rgba(cr, c->high_throttle_color.blue,  c->high_throttle_color.green, c->high_throttle_color.red, c->high_throttle_color.alpha);
-#else
-                gdk_cairo_set_source_color (cr, &t2col);
-#endif
             else if (c->stats_throttle[drawing_cursor] & 0x2)
-#if GTK_CHECK_VERSION(3, 0, 0)
                 cairo_set_source_rgba(cr, c->low_throttle_color.blue,  c->low_throttle_color.green, c->low_throttle_color.red, c->low_throttle_color.alpha);
-#else
-                gdk_cairo_set_source_color (cr, &t1col);
-#endif
             else
-#if GTK_CHECK_VERSION(3, 0, 0)
                 cairo_set_source_rgba(cr, c->foreground_color.blue,  c->foreground_color.green, c->foreground_color.red, c->foreground_color.alpha);
-#else
-                gdk_cairo_set_source_color (cr, &col);
-#endif
 
             float val = c->stats_cpu[drawing_cursor] * 100.0;
             val -= c->lower_temp;
@@ -533,30 +485,15 @@ static void cpu_configuration_changed (LXPanel *panel, GtkWidget *p)
 }
 
 /* Handler for expose_event on drawing area. */
-#if !GTK_CHECK_VERSION(3, 0, 0)
-static gboolean expose_event (GtkWidget * widget, GdkEventExpose * event, CPUTempPlugin * c)
-#else
 static gboolean draw (GtkWidget * widget, cairo_t * cr, CPUTempPlugin * c)
-#endif
 {
     /* Draw the requested part of the pixmap onto the drawing area.
      * Translate it in both x and y by the border size. */
     if (c->pixmap != NULL)
     {
-#if !GTK_CHECK_VERSION(3, 0, 0)
-        cairo_t * cr = gdk_cairo_create (gtk_widget_get_window (widget));
-        GtkStyle * style = gtk_widget_get_style (c->da);
-        gdk_cairo_region (cr, event->region);
-        cairo_clip (cr);
-        gdk_cairo_set_source_color (cr, &c->foreground_color);
-#else
         cairo_set_source_rgb (cr, 0, 0, 0); // FIXME: use black color from style
-#endif
         cairo_set_source_surface (cr, c->pixmap, BORDER_SIZE, BORDER_SIZE);
         cairo_paint (cr);
-#if !GTK_CHECK_VERSION(3, 0, 0)
-        cairo_destroy (cr);
-#endif
     }
     return FALSE;
 }
@@ -590,51 +527,27 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
 
     if (config_setting_lookup_string (settings, "Foreground", &str))
     {
-#if GTK_CHECK_VERSION(3, 0, 0)
         if (!gdk_rgba_parse (&c->foreground_color, str))
             gdk_rgba_parse (&c->foreground_color, "dark gray");
     } else gdk_rgba_parse (&c->foreground_color, "dark gray");
-#else
-        if (!gdk_color_parse (str, &c->foreground_color))
-            gdk_color_parse ("dark gray", &c->foreground_color);
-    } else gdk_color_parse ("dark gray", &c->foreground_color);
-#endif
 
     if (config_setting_lookup_string (settings, "Background", &str))
     {
-#if GTK_CHECK_VERSION(3, 0, 0)
         if (!gdk_rgba_parse (&c->background_color, str))
             gdk_rgba_parse (&c->background_color, "light gray");
     } else gdk_rgba_parse (&c->background_color, "light gray");
-#else
-        if (!gdk_color_parse (str, &c->background_color))
-            gdk_color_parse ("light gray", &c->background_color);
-    } else gdk_color_parse ("light gray", &c->background_color);
-#endif
 
     if (config_setting_lookup_string (settings, "Throttle1", &str))
     {
-#if GTK_CHECK_VERSION(3, 0, 0)
         if (!gdk_rgba_parse (&c->low_throttle_color, str))
             gdk_rgba_parse (&c->low_throttle_color, "orange");
     } else gdk_rgba_parse (&c->low_throttle_color, "orange");
-#else
-        if (!gdk_color_parse (str, &c->low_throttle_color))
-            gdk_color_parse ("orange", &c->low_throttle_color);
-    } else gdk_color_parse ("orange", &c->low_throttle_color);
-#endif
 
     if (config_setting_lookup_string (settings, "Throttle2", &str))
     {
-#if GTK_CHECK_VERSION(3, 0, 0)
         if (!gdk_rgba_parse (&c->high_throttle_color, str))
             gdk_rgba_parse (&c->high_throttle_color, "red");
     } else gdk_rgba_parse (&c->high_throttle_color, "red");
-#else
-        if (!gdk_color_parse (str, &c->high_throttle_color))
-            gdk_color_parse ("red", &c->high_throttle_color);
-    } else gdk_color_parse ("red", &c->high_throttle_color);
-#endif
 
     if (config_setting_lookup_int (settings, "LowTemp", &val))
     {
@@ -654,11 +567,7 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
     check_sensors (c);
 
     /* Connect signals. */
-#if !GTK_CHECK_VERSION(3, 0, 0)
-    g_signal_connect(G_OBJECT (c->da), "expose-event", G_CALLBACK (expose_event), (gpointer) c);
-#else
     g_signal_connect(G_OBJECT (c->da), "draw", G_CALLBACK (draw), (gpointer) c);
-#endif
 
     /* Connect a timer to refresh the statistics. */
     c->timer = g_timeout_add (1500, (GSourceFunc) cpu_update, (gpointer) c);
@@ -687,29 +596,13 @@ static gboolean cpu_apply_configuration (gpointer user_data)
 	char colbuf[32];
     GtkWidget *p = user_data;
     CPUTempPlugin *c = lxpanel_plugin_get_data (p);
-#if GTK_CHECK_VERSION(3, 0, 0)
     sprintf (colbuf, "%s", gdk_rgba_to_string (&c->foreground_color));
-#else
-    sprintf (colbuf, "%s", gdk_color_to_string (&c->foreground_color));
-#endif
     config_group_set_string (c->settings, "Foreground", colbuf);
-#if GTK_CHECK_VERSION(3, 0, 0)
     sprintf (colbuf, "%s", gdk_rgba_to_string (&c->background_color));
-#else
-    sprintf (colbuf, "%s", gdk_color_to_string (&c->background_color));
-#endif
     config_group_set_string (c->settings, "Background", colbuf);
-#if GTK_CHECK_VERSION(3, 0, 0)
     sprintf (colbuf, "%s", gdk_rgba_to_string (&c->low_throttle_color));
-#else
-    sprintf (colbuf, "%s", gdk_color_to_string (&c->low_throttle_color));
-#endif
     config_group_set_string (c->settings, "Throttle1", colbuf);
-#if GTK_CHECK_VERSION(3, 0, 0)
     sprintf (colbuf, "%s", gdk_rgba_to_string (&c->high_throttle_color));
-#else
-    sprintf (colbuf, "%s", gdk_color_to_string (&c->high_throttle_color));
-#endif
     config_group_set_string (c->settings, "Throttle2", colbuf);
     config_group_set_int (c->settings, "HighTemp", c->upper_temp);
     config_group_set_int (c->settings, "LowTemp", c->lower_temp);
