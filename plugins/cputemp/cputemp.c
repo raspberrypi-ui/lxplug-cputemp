@@ -569,6 +569,10 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
     /* Connect signals. */
     g_signal_connect(G_OBJECT (c->da), "draw", G_CALLBACK (draw), (gpointer) c);
 
+    /* Initialise buffers */
+    c->stats_cpu = NULL;
+    cpu_configuration_changed (panel, c->plugin);
+
     /* Connect a timer to refresh the statistics. */
     c->timer = g_timeout_add (1500, (GSourceFunc) cpu_update, (gpointer) c);
 
@@ -588,6 +592,7 @@ static void cpu_destructor (gpointer user_data)
     /* Deallocate memory. */
     cairo_surface_destroy (c->pixmap);
     g_free (c->stats_cpu);
+    g_free (c->stats_throttle);
     g_free (c);
 }
 

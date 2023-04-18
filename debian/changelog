@@ -1,3 +1,9 @@
+lxplug-cputemp (0.10) bullseye; urgency=medium
+
+  * Fix uninitialised variable at startup
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 18 Apr 2023 08:03:24 +0100
+
 lxplug-cputemp (0.9) bullseye; urgency=medium
 
   * Tidy constructor; fix translations
