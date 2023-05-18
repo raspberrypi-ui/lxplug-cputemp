@@ -1,0 +1,55 @@
+# English translations for lxplug_cputemp package.
+# Copyright (C) 2019 Raspberry Pi Ltd
+# This file is distributed under the same license as the lxplug_cputemp package.
+# Simon Long <simon@raspberrypi.org>, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: lxplug_cputemp 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-29 08:23+0000\n"
+"PO-Revision-Date: 2023-05-18 21:56+0900\n"
+"Language-Team: English (British)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 2.4.2\n"
+"Last-Translator: Yi Yunseok <ironyunseok@protonmail.com>\n"
+"Language: ko\n"
+
+#: ../plugins/cputemp/cputemp.c:638
+msgid "CPU Temperature"
+msgstr "CPU 온도"
+
+#: ../plugins/cputemp/cputemp.c:640
+msgid "Foreground colour"
+msgstr "전경색"
+
+#: ../plugins/cputemp/cputemp.c:641
+msgid "Background colour"
+msgstr "배경색"
+
+#: ../plugins/cputemp/cputemp.c:642
+msgid "Colour when ARM frequency capped"
+msgstr "경계 도달 시 색상"
+
+#: ../plugins/cputemp/cputemp.c:643
+msgid "Colour when throttled"
+msgstr "상한 도달 시 색상"
+
+#: ../plugins/cputemp/cputemp.c:644
+msgid "Lower temperature bound"
+msgstr "온도 하한경계"
+
+#: ../plugins/cputemp/cputemp.c:645
+msgid "Upper temperature bound"
+msgstr "온도 상한경계"
+
+#: ../plugins/cputemp/cputemp.c:653
+msgid "CPU Temperature Monitor"
+msgstr "CPU 온도 모니터"
+
+#: ../plugins/cputemp/cputemp.c:655
+msgid "Display CPU temperature"
+msgstr "CPU 온도 표시"
