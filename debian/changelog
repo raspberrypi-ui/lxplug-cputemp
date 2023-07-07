@@ -1,3 +1,9 @@
+lxplug-cputemp (0.12) bullseye; urgency=medium
+
+  * Indicate different throttle state
+
+ -- Simon Long <simon@raspberrypi.com>  Fri, 07 Jul 2023 11:34:15 +0100
+
 lxplug-cputemp (0.11) bullseye; urgency=medium
 
   * Add Korean translations

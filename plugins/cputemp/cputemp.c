@@ -299,7 +299,7 @@ static void redraw_pixmap (CPUTempPlugin * c)
         /* Draw one bar of the CPU usage graph. */
         if (c->stats_cpu[drawing_cursor] != 0.0)
         {
-            if (c->stats_throttle[drawing_cursor] & 0x4)
+            if (c->stats_throttle[drawing_cursor] & 0x8)
                 cairo_set_source_rgba(cr, c->high_throttle_color.blue,  c->high_throttle_color.green, c->high_throttle_color.red, c->high_throttle_color.alpha);
             else if (c->stats_throttle[drawing_cursor] & 0x2)
                 cairo_set_source_rgba(cr, c->low_throttle_color.blue,  c->low_throttle_color.green, c->low_throttle_color.red, c->low_throttle_color.alpha);
