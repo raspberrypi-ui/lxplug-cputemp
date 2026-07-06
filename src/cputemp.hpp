@@ -44,12 +44,12 @@ class WayfireCPUTemp : public WayfireWidget
 
     sigc::connection icon_timer;
 
-    WfOption <std::string> foreground_colour {"panel/cputemp_foreground"};
-    WfOption <std::string> background_colour {"panel/cputemp_background"};
-    WfOption <std::string> throttle1_colour {"panel/cputemp_throttle_1"};
-    WfOption <std::string> throttle2_colour {"panel/cputemp_throttle_2"};
-    WfOption <int> low_temp {"panel/cputemp_low_temp"};
-    WfOption <int> high_temp {"panel/cputemp_high_temp"};
+    WfOption <std::string> foreground_colour {"cputemp/foreground"};
+    WfOption <std::string> background_colour {"cputemp/background"};
+    WfOption <std::string> throttle1_colour {"cputemp/throttle_1"};
+    WfOption <std::string> throttle2_colour {"cputemp/throttle_2"};
+    WfOption <int> low_temp {"cputemp/low_temp"};
+    WfOption <int> high_temp {"cputemp/high_temp"};
 
     /* plugin */
     CPUTempPlugin *cput;
