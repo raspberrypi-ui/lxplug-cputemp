@@ -415,7 +415,7 @@ void cputemp_init (CPUTempPlugin *c)
 
     /* Set up button */
 #ifndef LXPLUG
-    add_long_press (c->plugin, NULL, NULL);
+    c->gesture = add_long_press (c->plugin, NULL, NULL);
 #endif
 
     /* Set up variables */
@@ -439,6 +439,10 @@ void cputemp_init (CPUTempPlugin *c)
 void cputemp_destructor (gpointer user_data)
 {
     CPUTempPlugin *c = (CPUTempPlugin *) user_data;
+
+#ifndef LXPLUG
+    if (c->gesture) g_object_unref (c->gesture);
+#endif
 
     graph_free (&(c->graph));
     if (c->timer) g_source_remove (c->timer);
