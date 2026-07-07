@@ -413,6 +413,11 @@ void cputemp_init (CPUTempPlugin *c)
     graph_init (&(c->graph));
     gtk_container_add (GTK_CONTAINER (c->plugin), c->graph.da);
 
+    /* Set up button */
+#ifndef LXPLUG
+    add_long_press (c->plugin, NULL, NULL);
+#endif
+
     /* Set up variables */
     c->ispi = is_pi ();
     
