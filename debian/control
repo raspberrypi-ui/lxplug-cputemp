@@ -20,7 +20,7 @@ Description: CPU temperature plugin for lxpanel-pi
 Package: wfplug-cputemp
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
- wf-panel-pi (>=1.10)
+ wf-panel-pi (>=1.18)
 Description: CPU temperature plugin for wf-panel-pi
  Plugin for wf-panel-pi to show graph of CPU temperature.
 
