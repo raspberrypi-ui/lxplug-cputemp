@@ -359,8 +359,8 @@ static gboolean write_config (CPUTempPlugin *c)
     kf = g_key_file_new ();
     g_key_file_load_from_file (kf, user_file, G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS, NULL);
 
-    g_key_file_set_integer (kf, "panel", "cputemp_low_temp", c->lower_temp);
-    g_key_file_set_integer (kf, "panel", "cputemp_high_temp", c->upper_temp);
+    g_key_file_set_integer (kf, "cputemp", "low_temp", c->lower_temp);
+    g_key_file_set_integer (kf, "cputemp", "high_temp", c->upper_temp);
 
     strval = g_key_file_to_data (kf, &len, NULL);
     g_file_set_contents (user_file, strval, len, NULL);
