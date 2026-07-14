@@ -36,7 +36,7 @@ extern "C" {
 #include "cputemp.h"
 }
 
-class WayfireCPUTemp : public WayfireWidget
+class WidgetCPUTemp : public PanelWidget
 {
     std::unique_ptr <Gtk::Button> plugin;
 
@@ -55,7 +55,7 @@ class WayfireCPUTemp : public WayfireWidget
   public:
 
     void init (Gtk::HBox *container) override;
-    virtual ~WayfireCPUTemp ();
+    virtual ~WidgetCPUTemp ();
     bool set_icon (void);
     void read_settings (void);
     void settings_changed_cb (void);

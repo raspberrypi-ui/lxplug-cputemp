@@ -29,21 +29,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "cputemp.hpp"
 
 extern "C" {
-    WayfireWidget *create () { return new WayfireCPUTemp; }
-    void destroy (WayfireWidget *w) { delete w; }
+    PanelWidget *create () { return new WidgetCPUTemp; }
+    void destroy (PanelWidget *w) { delete w; }
 
     const conf_table_t *config_params (void) { return conf_table; };
     const char *display_name (void) { return PLUGIN_TITLE; };
     const char *package_name (void) { return GETTEXT_PACKAGE; };
 }
 
-bool WayfireCPUTemp::set_icon (void)
+bool WidgetCPUTemp::set_icon (void)
 {
     cputemp_update_display (cput);
     return false;
 }
 
-void WayfireCPUTemp::read_settings (void)
+void WidgetCPUTemp::read_settings (void)
 {
     if (!gdk_rgba_parse (&cput->foreground_colour, ((std::string) foreground_colour).c_str()))
         gdk_rgba_parse (&cput->foreground_colour, "dark gray");
@@ -58,13 +58,13 @@ void WayfireCPUTemp::read_settings (void)
     cput->upper_temp = high_temp;
 }
 
-void WayfireCPUTemp::settings_changed_cb (void)
+void WidgetCPUTemp::settings_changed_cb (void)
 {
     read_settings ();
     cputemp_update_display (cput);
 }
 
-void WayfireCPUTemp::init (Gtk::HBox *container)
+void WidgetCPUTemp::init (Gtk::HBox *container)
 {
     /* Create the button */
     plugin = std::make_unique <Gtk::Button> ();
@@ -74,22 +74,22 @@ void WayfireCPUTemp::init (Gtk::HBox *container)
     /* Setup structure */
     cput = g_new0 (CPUTempPlugin, 1);
     cput->plugin = (GtkWidget *)((*plugin).gobj());
-    icon_timer = Glib::signal_idle().connect (sigc::mem_fun (*this, &WayfireCPUTemp::set_icon));
+    icon_timer = Glib::signal_idle().connect (sigc::mem_fun (*this, &WidgetCPUTemp::set_icon));
 
     /* Initialise the plugin */
     read_settings ();
     cputemp_init (cput);
 
     /* Setup callbacks */
-    foreground_colour.set_callback (sigc::mem_fun (*this, &WayfireCPUTemp::settings_changed_cb));
-    background_colour.set_callback (sigc::mem_fun (*this, &WayfireCPUTemp::settings_changed_cb));
-    throttle1_colour.set_callback (sigc::mem_fun (*this, &WayfireCPUTemp::settings_changed_cb));
-    throttle2_colour.set_callback (sigc::mem_fun (*this, &WayfireCPUTemp::settings_changed_cb));
-    low_temp.set_callback (sigc::mem_fun (*this, &WayfireCPUTemp::settings_changed_cb));
-    high_temp.set_callback (sigc::mem_fun (*this, &WayfireCPUTemp::settings_changed_cb));
+    foreground_colour.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
+    background_colour.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
+    throttle1_colour.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
+    throttle2_colour.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
+    low_temp.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
+    high_temp.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
 }
 
-WayfireCPUTemp::~WayfireCPUTemp()
+WidgetCPUTemp::~WidgetCPUTemp()
 {
     icon_timer.disconnect ();
     cputemp_destructor (cput);
