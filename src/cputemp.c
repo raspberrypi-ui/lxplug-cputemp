@@ -53,13 +53,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*----------------------------------------------------------------------------*/
 
 conf_table_t conf_table[7] = {
-    {CONF_TYPE_COLOUR,   "foreground",   N_("Foreground colour"),               NULL},
-    {CONF_TYPE_COLOUR,   "background",   N_("Background colour"),               NULL},
-    {CONF_TYPE_COLOUR,   "throttle_1",   N_("Colour when ARM frequency capped"),NULL},
-    {CONF_TYPE_COLOUR,   "throttle_2",   N_("Colour when throttled"),           NULL},
-    {CONF_TYPE_INT,      "low_temp",     N_("Lower temperature bound"),         NULL},
-    {CONF_TYPE_INT,      "high_temp",    N_("Upper temperature bound"),         NULL},
-    {CONF_TYPE_NONE,     NULL,           NULL,                                  NULL}
+    {CONF_TYPE_COLOUR,   "foreground",   N_("Foreground colour"),               NULL,   "dark gray" },
+    {CONF_TYPE_COLOUR,   "background",   N_("Background colour"),               NULL,   "light gray"},
+    {CONF_TYPE_COLOUR,   "throttle_1",   N_("Colour when ARM frequency capped"),NULL,   "orange"    },
+    {CONF_TYPE_COLOUR,   "throttle_2",   N_("Colour when throttled"),           NULL,   "red"       },
+    {CONF_TYPE_INT,      "low_temp",     N_("Lower temperature bound"),         NULL,   "40"        },
+    {CONF_TYPE_INT,      "high_temp",    N_("Upper temperature bound"),         NULL,   "90"        },
+    {CONF_TYPE_NONE,     NULL,           NULL,                                  NULL,   NULL        }
 };
 
 /*----------------------------------------------------------------------------*/

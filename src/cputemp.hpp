@@ -42,13 +42,6 @@ class WidgetCPUTemp : public PanelWidget
 
     sigc::connection icon_timer;
 
-    WfOption <std::string> foreground_colour {"cputemp/foreground"};
-    WfOption <std::string> background_colour {"cputemp/background"};
-    WfOption <std::string> throttle1_colour {"cputemp/throttle_1"};
-    WfOption <std::string> throttle2_colour {"cputemp/throttle_2"};
-    WfOption <int> low_temp {"cputemp/low_temp"};
-    WfOption <int> high_temp {"cputemp/high_temp"};
-
     /* plugin */
     CPUTempPlugin *cput;
 
@@ -58,7 +51,7 @@ class WidgetCPUTemp : public PanelWidget
     virtual ~WidgetCPUTemp ();
     bool set_icon (void);
     void read_settings (void);
-    void settings_changed_cb (void);
+    void handle_config_reload (void);
 };
 
 #endif /* end of include guard: WIDGETS_CPUTEMP_HPP */

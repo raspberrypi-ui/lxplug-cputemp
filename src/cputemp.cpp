@@ -45,22 +45,20 @@ bool WidgetCPUTemp::set_icon (void)
 
 void WidgetCPUTemp::read_settings (void)
 {
-    if (!gdk_rgba_parse (&cput->foreground_colour, ((std::string) foreground_colour).c_str()))
-        gdk_rgba_parse (&cput->foreground_colour, "dark gray");
-    if (!gdk_rgba_parse (&cput->background_colour, ((std::string) background_colour).c_str()))
-        gdk_rgba_parse (&cput->background_colour, "light gray");
-    if (!gdk_rgba_parse (&cput->low_throttle_colour, ((std::string) throttle1_colour).c_str()))
-        gdk_rgba_parse (&cput->low_throttle_colour, "orange");
-    if (!gdk_rgba_parse (&cput->high_throttle_colour, ((std::string) throttle2_colour).c_str()))
-        gdk_rgba_parse (&cput->high_throttle_colour, "red");
+    conf_table[0].value = (void *) &cput->foreground_colour;
+    conf_table[1].value = (void *) &cput->background_colour;
+    conf_table[2].value = (void *) &cput->low_throttle_colour;
+    conf_table[3].value = (void *) &cput->high_throttle_colour;
+    conf_table[4].value = (void *) &cput->lower_temp;
+    conf_table[5].value = (void *) &cput->upper_temp;
 
-    cput->lower_temp = low_temp;
-    cput->upper_temp = high_temp;
+    load_configuration_data (PLUGIN_NAME, conf_table);
 }
 
-void WidgetCPUTemp::settings_changed_cb (void)
+void WidgetCPUTemp::handle_config_reload (void)
 {
-    read_settings ();
+    load_configuration_data (PLUGIN_NAME, conf_table);
+
     cputemp_update_display (cput);
 }
 
@@ -79,14 +77,6 @@ void WidgetCPUTemp::init (Gtk::HBox *container)
     /* Initialise the plugin */
     read_settings ();
     cputemp_init (cput);
-
-    /* Setup callbacks */
-    foreground_colour.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
-    background_colour.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
-    throttle1_colour.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
-    throttle2_colour.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
-    low_temp.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
-    high_temp.set_callback (sigc::mem_fun (*this, &WidgetCPUTemp::settings_changed_cb));
 }
 
 WidgetCPUTemp::~WidgetCPUTemp()
