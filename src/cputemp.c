@@ -403,6 +403,16 @@ void cputemp_update_display (CPUTempPlugin *c)
         c->low_throttle_colour, c->high_throttle_colour);
 }
 
+void cputemp_set_values (CPUTempPlugin *c)
+{
+    conf_table[0].value = (void *) &c->foreground_colour;
+    conf_table[1].value = (void *) &c->background_colour;
+    conf_table[2].value = (void *) &c->low_throttle_colour;
+    conf_table[3].value = (void *) &c->high_throttle_colour;
+    conf_table[4].value = (void *) &c->lower_temp;
+    conf_table[5].value = (void *) &c->upper_temp;
+}
+
 void cputemp_init (CPUTempPlugin *c)
 {
     setlocale (LC_ALL, "");
@@ -467,21 +477,8 @@ static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
     c->plugin = gtk_event_box_new ();
     lxpanel_plugin_set_data (c->plugin, c, cputemp_destructor);
 
-    /* Set config defaults */
-    gdk_rgba_parse (&c->foreground_colour, "dark gray");
-    gdk_rgba_parse (&c->background_colour, "light gray");
-    gdk_rgba_parse (&c->low_throttle_colour, "orange");
-    gdk_rgba_parse (&c->high_throttle_colour, "red");
-    c->lower_temp = 40;
-    c->upper_temp = 90;
-
     /* Read config */
-    conf_table[0].value = (void *) &c->foreground_colour;
-    conf_table[1].value = (void *) &c->background_colour;
-    conf_table[2].value = (void *) &c->low_throttle_colour;
-    conf_table[3].value = (void *) &c->high_throttle_colour;
-    conf_table[4].value = (void *) &c->lower_temp;
-    conf_table[5].value = (void *) &c->upper_temp;
+    cputemp_set_values (c);
     lxplug_read_settings (c->settings, conf_table);
 
     cputemp_init (c);

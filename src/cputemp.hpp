@@ -38,19 +38,16 @@ extern "C" {
 
 class WidgetCPUTemp : public PanelWidget
 {
-    std::unique_ptr <Gtk::Button> plugin;
-
-    sigc::connection icon_timer;
-
-    /* plugin */
     CPUTempPlugin *cput;
+
+    std::unique_ptr <Gtk::Button> plugin;
+    sigc::connection icon_timer;
 
   public:
 
     void init (Gtk::HBox *container) override;
     virtual ~WidgetCPUTemp ();
     bool set_icon (void);
-    void read_settings (void);
     void handle_config_reload (void);
 };
 

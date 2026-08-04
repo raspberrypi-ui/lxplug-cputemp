@@ -68,6 +68,7 @@ extern conf_table_t conf_table[7];
 /*----------------------------------------------------------------------------*/
 
 extern void cputemp_init (CPUTempPlugin *up);
+extern void cputemp_set_values (CPUTempPlugin *up);
 extern void cputemp_update_display (CPUTempPlugin *up);
 extern void cputemp_destructor (gpointer user_data);
 

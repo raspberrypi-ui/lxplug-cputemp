@@ -43,23 +43,9 @@ bool WidgetCPUTemp::set_icon (void)
     return false;
 }
 
-void WidgetCPUTemp::read_settings (void)
-{
-    conf_table[0].value = (void *) &cput->foreground_colour;
-    conf_table[1].value = (void *) &cput->background_colour;
-    conf_table[2].value = (void *) &cput->low_throttle_colour;
-    conf_table[3].value = (void *) &cput->high_throttle_colour;
-    conf_table[4].value = (void *) &cput->lower_temp;
-    conf_table[5].value = (void *) &cput->upper_temp;
-
-    load_configuration_data (PLUGIN_NAME, conf_table);
-}
-
 void WidgetCPUTemp::handle_config_reload (void)
 {
-    load_configuration_data (PLUGIN_NAME, conf_table);
-
-    cputemp_update_display (cput);
+    if (load_configuration_data (PLUGIN_NAME, conf_table)) cputemp_update_display (cput);
 }
 
 void WidgetCPUTemp::init (Gtk::HBox *container)
@@ -75,7 +61,8 @@ void WidgetCPUTemp::init (Gtk::HBox *container)
     icon_timer = Glib::signal_idle().connect (sigc::mem_fun (*this, &WidgetCPUTemp::set_icon));
 
     /* Initialise the plugin */
-    read_settings ();
+    cputemp_set_values (cput);
+    load_configuration_data (PLUGIN_NAME, conf_table);
     cputemp_init (cput);
 }
 

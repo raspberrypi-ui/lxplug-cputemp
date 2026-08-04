@@ -1,3 +1,2 @@
 usr/lib/${DEB_HOST_MULTIARCH}/wf-panel-pi/libcputemp.so
-usr/share/wf-panel-pi/metadata/cputemp.xml
 usr/share/locale/*/LC_MESSAGES/wfplug_cputemp.mo
