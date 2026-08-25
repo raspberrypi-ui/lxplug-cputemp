@@ -25,53 +25,78 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ============================================================================*/
 
+#include <locale.h>
+#include <glib/gi18n.h>
+
+#include "plugin.h"
+
+#include "cputemp.h"
+
 /*----------------------------------------------------------------------------*/
-/* Typedefs and macros                                                        */
+/* LXPanel plugin functions                                                   */
 /*----------------------------------------------------------------------------*/
 
-#define PLUGIN_TITLE N_("CPU Temperature")
-
-#define MAX_NUM_SENSORS 10
-
-typedef gint (*GetTempFunc) (char const *);
-
-typedef struct
+/* Constructor */
+static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
 {
-    GtkWidget *plugin;
+    /* Allocate and initialize plugin context */
+    CPUTempPlugin *c = g_new0 (CPUTempPlugin, 1);
 
-#ifdef LXPLUG
-    LXPanel *panel;                         /* Back pointer to panel */
-    config_setting_t *settings;             /* Plugin settings */
-#else
-    GtkGesture *gesture;
-#endif
+    /* Allocate top level widget and set into plugin widget pointer. */
+    c->panel = panel;
+    c->settings = settings;
+    c->plugin = gtk_event_box_new ();
+    lxpanel_plugin_set_data (c->plugin, c, cputemp_destructor);
 
-    PluginGraph graph;
-    guint timer;                            /* Timer for periodic update */
-    int numsensors;
-    char *sensor_array[MAX_NUM_SENSORS];
-    GetTempFunc get_temperature[MAX_NUM_SENSORS];
-    gint temperature[MAX_NUM_SENSORS];
-    gboolean ispi;
-    int lower_temp;                         /* Temperature of bottom of graph */
-    int upper_temp;                         /* Temperature of top of graph */
-    GdkRGBA foreground_colour;              /* Foreground colour for drawing area */
-    GdkRGBA background_colour;              /* Background colour for drawing area */
-    GdkRGBA low_throttle_colour;            /* Colour for bars with ARM freq cap */
-    GdkRGBA high_throttle_colour;           /* Colour for bars with throttling */
-} CPUTempPlugin;
+    /* Read config */
+    cputemp_set_values (c);
+    lxplug_read_settings (c->settings, conf_table);
 
-extern conf_table_t conf_table[7];
+    cputemp_init (c);
 
-/*----------------------------------------------------------------------------*/
-/* Prototypes                                                                 */
-/*----------------------------------------------------------------------------*/
+    return c->plugin;
+}
 
-extern void cputemp_init (CPUTempPlugin *up);
-extern void cputemp_set_values (CPUTempPlugin *up);
-extern void cputemp_update_display (CPUTempPlugin *up);
-extern void cputemp_destructor (gpointer user_data);
-extern void validate_temps (CPUTempPlugin *c);
+/* Handler for system config changed message from panel */
+static void cpu_configuration_changed (LXPanel *, GtkWidget *plugin)
+{
+    CPUTempPlugin *c = lxpanel_plugin_get_data (plugin);
+    cputemp_update_display (c);
+}
+
+/* Apply changes from config dialog */
+static gboolean cpu_apply_configuration (gpointer user_data)
+{
+    CPUTempPlugin *c = lxpanel_plugin_get_data (GTK_WIDGET (user_data));
+
+    validate_temps (c);
+
+    lxplug_write_settings (c->settings, conf_table);
+
+    cputemp_update_display (c);
+    return FALSE;
+}
+
+/* Display configuration dialog */
+static GtkWidget *cpu_configure (LXPanel *panel, GtkWidget *plugin)
+{
+    return lxpanel_generic_config_dlg_new (_(PLUGIN_TITLE), panel,
+        cpu_apply_configuration, plugin,
+        conf_table);
+}
+
+int module_lxpanel_gtk_version = 1;
+char module_name[] = PLUGIN_NAME;
+
+/* Plugin descriptor */
+LXPanelPluginInit fm_module_init_lxpanel_gtk = {
+    .name = PLUGIN_TITLE,
+    .config = cpu_configure,
+    .description = N_("Display CPU temperature"),
+    .new_instance = cpu_constructor,
+    .reconfigure = cpu_configuration_changed,
+    .gettext_package = GETTEXT_PACKAGE
+};
 
 /* End of file */
 /*----------------------------------------------------------------------------*/

@@ -28,11 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <locale.h>
 #include <glib/gi18n.h>
 
-#ifdef LXPLUG
 #include "plugin.h"
-#else
-#include "lxutils.h"
-#endif
 
 #include "cputemp.h"
 
@@ -80,7 +76,6 @@ static char *get_string (char *cmd);
 static int get_throttle (void);
 static gboolean cpu_update (CPUTempPlugin *c);
 static gboolean write_config (CPUTempPlugin *c);
-static void validate_temps (CPUTempPlugin *c);
 
 /*----------------------------------------------------------------------------*/
 /* Function definitions                                                       */
@@ -348,32 +343,11 @@ static gboolean cpu_update (CPUTempPlugin *c)
 
 static gboolean write_config (CPUTempPlugin *c)
 {
-#ifdef LXPLUG
-    (void) c;
-#else
-    char *strval, *user_file;
-    GKeyFile *kf;
-    gsize len;
-
-    user_file = g_build_filename (g_get_user_config_dir (), "wf-panel-pi.ini", NULL);
-    kf = g_key_file_new ();
-    g_key_file_load_from_file (kf, user_file, G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS, NULL);
-
-    g_key_file_set_integer (kf, "cputemp", "low_temp", c->lower_temp);
-    g_key_file_set_integer (kf, "cputemp", "high_temp", c->upper_temp);
-
-    strval = g_key_file_to_data (kf, &len, NULL);
-    g_file_set_contents (user_file, strval, len, NULL);
-
-    g_free (strval);
-    g_key_file_free (kf);
-    g_free (user_file);
-#endif
-
+    wrap_save_config (c, "cputemp", conf_table);
     return FALSE;
 }
 
-static void validate_temps (CPUTempPlugin *c)
+void validate_temps (CPUTempPlugin *c)
 {
     int lower, upper;
 
@@ -424,9 +398,7 @@ void cputemp_init (CPUTempPlugin *c)
     gtk_container_add (GTK_CONTAINER (c->plugin), c->graph.da);
 
     /* Set up button */
-#ifndef LXPLUG
-    c->gesture = add_long_press (c->plugin, NULL, NULL);
-#endif
+    wrap_add_longpress (c->gesture, c->plugin, NULL, NULL);
 
     /* Set up variables */
     c->ispi = is_pi ();
@@ -450,83 +422,13 @@ void cputemp_destructor (gpointer user_data)
 {
     CPUTempPlugin *c = (CPUTempPlugin *) user_data;
 
-#ifndef LXPLUG
-    if (c->gesture) g_object_unref (c->gesture);
-#endif
+    wrap_free_gesture (c->gesture);
 
     graph_free (&(c->graph));
     if (c->timer) g_source_remove (c->timer);
 
     g_free (c);
 }
-
-/*----------------------------------------------------------------------------*/
-/* LXPanel plugin functions                                                   */
-/*----------------------------------------------------------------------------*/
-#ifdef LXPLUG
-
-/* Constructor */
-static GtkWidget *cpu_constructor (LXPanel *panel, config_setting_t *settings)
-{
-    /* Allocate and initialize plugin context */
-    CPUTempPlugin *c = g_new0 (CPUTempPlugin, 1);
-
-    /* Allocate top level widget and set into plugin widget pointer. */
-    c->panel = panel;
-    c->settings = settings;
-    c->plugin = gtk_event_box_new ();
-    lxpanel_plugin_set_data (c->plugin, c, cputemp_destructor);
-
-    /* Read config */
-    cputemp_set_values (c);
-    lxplug_read_settings (c->settings, conf_table);
-
-    cputemp_init (c);
-
-    return c->plugin;
-}
-
-/* Handler for system config changed message from panel */
-static void cpu_configuration_changed (LXPanel *, GtkWidget *plugin)
-{
-    CPUTempPlugin *c = lxpanel_plugin_get_data (plugin);
-    cputemp_update_display (c);
-}
-
-/* Apply changes from config dialog */
-static gboolean cpu_apply_configuration (gpointer user_data)
-{
-    CPUTempPlugin *c = lxpanel_plugin_get_data (GTK_WIDGET (user_data));
-
-    validate_temps (c);
-
-    lxplug_write_settings (c->settings, conf_table);
-
-    cputemp_update_display (c);
-    return FALSE;
-}
-
-/* Display configuration dialog */
-static GtkWidget *cpu_configure (LXPanel *panel, GtkWidget *plugin)
-{
-    return lxpanel_generic_config_dlg_new (_(PLUGIN_TITLE), panel,
-        cpu_apply_configuration, plugin,
-        conf_table);
-}
-
-int module_lxpanel_gtk_version = 1;
-char module_name[] = PLUGIN_NAME;
-
-/* Plugin descriptor */
-LXPanelPluginInit fm_module_init_lxpanel_gtk = {
-    .name = PLUGIN_TITLE,
-    .config = cpu_configure,
-    .description = N_("Display CPU temperature"),
-    .new_instance = cpu_constructor,
-    .reconfigure = cpu_configuration_changed,
-    .gettext_package = GETTEXT_PACKAGE
-};
-#endif
 
 /* End of file */
 /*----------------------------------------------------------------------------*/

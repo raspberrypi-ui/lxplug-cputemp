@@ -12,15 +12,13 @@ Homepage: http://raspberrypi.com/
 
 Package: lpplug-cputemp
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends},
- lxpanel-pi (>=1.8)
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: CPU temperature plugin for lxpanel-pi
  Plugin for lxpanel-pi to show graph of CPU temperature.
 
 Package: wfplug-cputemp
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends},
- wf-panel-pi (>=1.23)
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: CPU temperature plugin for wf-panel-pi
  Plugin for wf-panel-pi to show graph of CPU temperature.
 
