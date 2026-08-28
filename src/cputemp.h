@@ -38,14 +38,7 @@ typedef gint (*GetTempFunc) (char const *);
 typedef struct
 {
     GtkWidget *plugin;
-
-#ifdef LXPLUG
-    LXPanel *panel;                         /* Back pointer to panel */
-    config_setting_t *settings;             /* Plugin settings */
-#else
     GtkGesture *gesture;
-#endif
-
     PluginGraph graph;
     guint timer;                            /* Timer for periodic update */
     int numsensors;
@@ -59,6 +52,7 @@ typedef struct
     GdkRGBA background_colour;              /* Background colour for drawing area */
     GdkRGBA low_throttle_colour;            /* Colour for bars with ARM freq cap */
     GdkRGBA high_throttle_colour;           /* Colour for bars with throttling */
+    LXPLUG_VARS
 } CPUTempPlugin;
 
 extern conf_table_t conf_table[7];
