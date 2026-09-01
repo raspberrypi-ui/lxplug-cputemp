@@ -68,7 +68,6 @@ static void cpu_configuration_changed (LXPanel *, GtkWidget *plugin)
 static gboolean cpu_apply_configuration (gpointer user_data)
 {
     CPUTempPlugin *c = lxpanel_plugin_get_data (GTK_WIDGET (user_data));
-    validate_temps (c);
     lxplug_write_settings (c->settings, conf_table);
     cputemp_update_display (c);
     return FALSE;

@@ -76,6 +76,7 @@ static char *get_string (char *cmd);
 static int get_throttle (void);
 static gboolean cpu_update (CPUTempPlugin *c);
 static gboolean write_config (CPUTempPlugin *c);
+static void validate_temps (CPUTempPlugin *c);
 
 /*----------------------------------------------------------------------------*/
 /* Function definitions                                                       */
@@ -406,9 +407,7 @@ void cputemp_init (CPUTempPlugin *c)
     /* Find the system thermal sensors */
     check_sensors (c);
 
-    /* Constrain temperatures */
-    validate_temps (c);
-
+    /* Constrain temperatures and draw */
     cputemp_update_display (c);
 
     /* Connect a timer to refresh the statistics. */

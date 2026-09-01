@@ -50,7 +50,7 @@ void WidgetCPUTemp::widget_config_reload (void)
 void WidgetCPUTemp::widget_init (Gtk::HBox *container)
 {
     /* Create the button */
-    plugin = std::make_unique <Gtk::Button> ();
+    plugin = std::make_unique <Gtk::EventBox> ();
     plugin->set_name (PLUGIN_NAME);
     container->pack_start (*plugin, false, false);
 
