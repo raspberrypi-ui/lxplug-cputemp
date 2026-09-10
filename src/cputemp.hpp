@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define WIDGETS_CPUTEMP_HPP
 
 #include <widget.hpp>
-#include <gtkmm/eventbox.h>
+#include <gtkmm/button.h>
 
 extern "C" {
 #include "plugin.h"
@@ -40,7 +40,7 @@ class WidgetCPUTemp : public PanelWidget
 {
     CPUTempPlugin *cput;
 
-    std::unique_ptr <Gtk::EventBox> plugin;
+    std::unique_ptr <Gtk::Button> plugin;
 
   public:
 
